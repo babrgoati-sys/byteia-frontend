@@ -10,7 +10,7 @@
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0a0f1e;color:#e0e0e0;display:flex;height:100vh;overflow:hidden}
 /* Sidebar */
-#sidebar{width:260px;background:#111827;display:flex;flex-direction:column;padding:12px;flex-shrink:0;border-right:1px solid #1f2937}
+#sidebar{position:relative;width:260px;background:#111827;display:flex;flex-direction:column;padding:12px;flex-shrink:0;border-right:1px solid #1f2937}
 #logo{display:flex;align-items:center;gap:10px;padding:8px;margin-bottom:8px;font-size:18px;font-weight:700;color:#fff}
 #logo span{background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:14px}
 .sb-btn{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;color:#9ca3af;font-size:14px;transition:.2s;border:none;background:none;width:100%;text-align:left}
@@ -95,7 +95,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <body>
 
 <div id="sidebar">
-  <div id="logo"><span>B</span> Byte IA</div>
+  <div id="rh" onmousedown="startResize(event)"></div><div id="logo"><span>B</span> Byte IA</div>
   <button class="sb-btn" onclick="newChat()">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
     Nouveau chat
@@ -129,16 +129,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div id="welcome">
     <h1>Comment puis-je vous aider ?</h1>
     <div class="suggestions">
-      <button class="sug-btn" onclick="useSug('Crée une image de')">🎨 Créer une image</button>
-      <button class="sug-btn" onclick="useSug('Aide-moi à écrire')">✍️ M\'aider à écrire</button>
+      <button class="sug-btn" onclick="useSug('Crée une image de')">📷 Créer une image</button>
+      <button class="sug-btn" onclick="useSug('Compose une musique')">🎵 Créer une musique</button>
       <button class="sug-btn" onclick="useSug('Résume ce texte :')">📄 Résumer un texte</button>
-      <button class="sug-btn" onclick="useSug('Explique-moi')">💡 Expliquer un concept</button>
+      <button class="sug-btn" onclick="useSug('Rédige un texte sur')">✍️ Rédiger un texte</button>
+      <button class="sug-btn" onclick="useSug('Explique-moi')">💡 Expliquer un sujet</button>
+      <button class="sug-btn" onclick="useSug('Traduis en anglais :')">🌍 Traduire un texte</button>
+      <button class="sug-btn" onclick="useSug('Rédige un mail pour')">✉️ Rédiger un mail</button>
     </div>
   </div>
 
   <div id="chat-input-wrap">
-    <div id="input-box">
-      <textarea id="msg-input" rows="1" placeholder="Message Byte IA..." onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+    <div style="border-radius:26px;padding:2px;background:linear-gradient(90deg,#c4b5fd,#818cf8,#c4b5fd)"><div id="input-box" style="border:none!important;border-radius:24px">
+      <button id="iub" onclick="document.getElementById('fil').click()" title="Envoyer une image" style="background:none;border:none;cursor:pointer;color:#9ca3af;padding:4px;border-radius:6px;display:flex;align-items:center;flex-shrink:0;transition:.15s" onmouseover="this.style.color='#818cf8'" onmouseout="this.style.color='#9ca3af'"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></button><input type="file" id="fil" accept="image/*" onchange="handleImg(this)" style="display:none"/><textarea id="msg-input" rows="1" placeholder="Message Byte IA..." onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
       <button id="send-btn" onclick="sendMessage()">
         <svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
       </button>
@@ -429,5 +432,109 @@ async function resetPassword() {
   } catch(e) { document.getElementById('auth-error').textContent = e.message; }
 }
 </script>
-</body>
+
+<script>
+// Clean markdown asterisks
+function cleanMd(t){
+  return t.replace(/\*\*(.+?)\*\*/g,'$1').replace(/\*(.+?)\*/g,'$1')
+    .replace(/^#{1,6}\s+/gm,'').replace(/\[([^\]]+)\]\([^)]+\)/g,'$1')
+    .replace(/^[-*]\s+/gm,'• ').trim();
+}
+
+// Spinning loader
+function showLoader(){
+  hideLoader();
+  const msgs=document.getElementById('messages');
+  const row=document.createElement('div');
+  row.id='ld';
+  row.style.cssText='display:flex;align-items:center;gap:12px;max-width:760px;width:100%;margin:0 auto;padding:6px 0';
+  row.innerHTML='<div style="width:28px;height:28px;border-radius:50%;background:#f5f3ff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#818cf8;flex-shrink:0">B</div>'+
+  '<div style="position:relative;width:30px;height:30px;flex-shrink:0;animation:lsp 1.1s linear infinite">'+
+    '<div style="position:absolute;width:7px;height:7px;border-radius:50%;background:#818cf8;top:0;left:11px"></div>'+
+    '<div style="position:absolute;width:7px;height:7px;border-radius:50%;background:#a78bfa;bottom:2px;right:2px"></div>'+
+    '<div style="position:absolute;width:7px;height:7px;border-radius:50%;background:#c4b5fd;bottom:2px;left:2px"></div>'+
+  '</div>'+
+  '<span style="font-size:13px;color:#9ca3af;font-style:italic;animation:tp 1.5s ease-in-out infinite">Byte réfléchit…</span>';
+  msgs.appendChild(row); msgs.scrollTop=msgs.scrollHeight;
+  if(!document.getElementById('las')){
+    const s=document.createElement('style');s.id='las';
+    s.textContent='@keyframes lsp{to{transform:rotate(360deg)}}@keyframes tp{0%,100%{opacity:1}50%{opacity:.4}}';
+    document.head.appendChild(s);
+  }
+}
+function hideLoader(){const e=document.getElementById('ld');if(e)e.remove();}
+
+// Override sendMessage to use cleanMd and loader
+const _origSend = window.sendMessage;
+window.sendMessage = async function(){
+  const inp=document.getElementById('msg-input');
+  const txt=inp.value.trim();
+  if(!txt&&!window._attFile) return;
+  inp.value=''; inp.style.height='auto';
+  document.getElementById('welcome').style.display='none';
+  const msgs=document.getElementById('messages');
+  msgs.style.display='flex'; msgs.style.flexDirection='column';
+  window._hist = window._hist||[];
+  window._hist.push({role:'user',content:txt||'Image'});
+  addMsgNew('user',txt,window._attDu);
+  const fu=window._attDu; window._attFile=null; window._attDu=null;
+  const ap=document.getElementById('att-prev'); if(ap)ap.style.display='none';
+  showLoader();
+  document.getElementById('send-btn').disabled=true;
+  try{
+    const res=await fetch('https://byteia-backend.onrender.com/chat',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({provider:'groq',messages:window._hist,max_tokens:2048})
+    });
+    const data=await res.json();
+    const reply=cleanMd(data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content||data.error||'Erreur.');
+    hideLoader();
+    window._hist.push({role:'assistant',content:reply});
+    addMsgNew('assistant',reply);
+  }catch(e){hideLoader();addMsgNew('assistant','Erreur: '+e.message);}
+  document.getElementById('send-btn').disabled=false;
+  const h=document.getElementById('hist');
+  if(txt){const di=document.createElement('div');di.className='hist-item active';di.textContent=txt.substring(0,38);h.prepend(di);}
+};
+
+function addMsgNew(role,text,imgUrl){
+  const msgs=document.getElementById('messages');
+  const row=document.createElement('div'); row.className='msg-row '+role;
+  const av=document.createElement('div'); av.className='msg-av';
+  av.textContent=role==='user'?(window._user?(window._user.displayName||window._user.email)[0].toUpperCase():'V'):'B';
+  const bubble=document.createElement('div'); bubble.className='msg-bubble';
+  if(imgUrl){const img=document.createElement('img');img.src=imgUrl;img.style.cssText='max-width:200px;border-radius:10px;display:block;margin-bottom:4px';bubble.appendChild(img);}
+  if(text){bubble.appendChild(document.createTextNode(text));}
+  row.appendChild(av); row.appendChild(bubble);
+  msgs.appendChild(row); msgs.scrollTop=msgs.scrollHeight;
+}
+
+// Image upload
+function handleImg(inp){
+  const f=inp.files[0]; if(!f) return;
+  window._attFile=f;
+  const rd=new FileReader();
+  rd.onload=e=>{
+    window._attDu=e.target.result;
+    let p=document.getElementById('att-prev');
+    if(!p){p=document.createElement('div');p.id='att-prev';p.style.cssText='display:flex;align-items:center;gap:6px;padding:4px 10px;background:#f5f3ff;border-radius:10px;font-size:11px;color:#7c3aed;margin-bottom:8px';
+    p.innerHTML='<span id="att-name" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span><button onclick="window._attFile=null;window._attDu=null;this.parentElement.style.display=\'none\'" style="background:none;border:none;cursor:pointer;color:#9ca3af">✕</button>';
+    document.getElementById('chat-input-area')||document.getElementById('chat-wrap').insertBefore(p,document.getElementById('input-box')||document.getElementById('input-outer'));}
+    document.getElementById('att-name').textContent=f.name;
+    p.style.display='flex';
+  };
+  rd.readAsDataURL(f); inp.value='';
+}
+
+// Resizable sidebar
+function startResize(e){
+  const sb=document.getElementById('sidebar');
+  const sx=e.clientX,sw=sb.offsetWidth;
+  function mv(e){sb.style.width=Math.min(Math.max(sw+(e.clientX-sx),120),340)+'px';}
+  function up(){document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);}
+  document.addEventListener('mousemove',mv);
+  document.addEventListener('mouseup',up);
+  e.preventDefault();
+}
+</script></body>
 </html>
