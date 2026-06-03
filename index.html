@@ -252,16 +252,16 @@
   <div id="input-zone">
     <div id="img-preview">
       <img id="img-preview-img" src="" alt="preview">
-      <button onclick="clearImage()">â</button>
+      <button onclick="clearImage()">Ã¢ÂÂ</button>
     </div>
     <div id="input-box">
       <div id="input-actions-left">
-        <button class="input-icon-btn" id="img-btn" onclick="document.getElementById('img-input').click()" title="Joindre une image">ð·</button>
+        <button class="input-icon-btn" id="img-btn" onclick="document.getElementById('img-input').click()" title="Joindre une image">Ã°ÂÂÂ·</button>
         <input type="file" id="img-input" accept="image/*" style="display:none" onchange="handleImageSelect(this)">
-        <button class="input-icon-btn" id="mic-btn" onclick="toggleVoice()" title="Dicter un message">ð¤</button>
+        <button class="input-icon-btn" id="mic-btn" onclick="toggleVoice()" title="Dicter un message">Ã°ÂÂÂ¤</button>
       </div>
-      <textarea id="msg-input" placeholder="Ãcrivez un messageâ¦" rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
-      <button id="send-btn" onclick="sendMessage()">â¤</button>
+      <textarea id="msg-input" placeholder="ÃÂcrivez un messageÃ¢ÂÂ¦" rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+      <button id="send-btn" onclick="sendMessage()">Ã¢ÂÂ¤</button>
     </div>
   </div>
 </div>
@@ -269,11 +269,11 @@
 <!-- AUTH MODAL -->
 <div id="auth-overlay">
   <div id="auth-modal">
-    <button class="auth-close" onclick="closeAuth()">Ã</button>
+    <button class="auth-close" onclick="closeAuth()">ÃÂ</button>
     <h2>Bienvenue sur Byte IA</h2>
     <div class="auth-tabs">
       <div class="auth-tab active" onclick="switchTab('login')">Se connecter</div>
-      <div class="auth-tab" onclick="switchTab('signup')">CrÃ©er un compte</div>
+      <div class="auth-tab" onclick="switchTab('signup')">CrÃÂ©er un compte</div>
     </div>
     <div class="auth-form">
       <input type="email" id="auth-email" placeholder="Email">
@@ -284,7 +284,7 @@
         <svg width="18" height="18" viewBox="0 0 18 18"><path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/><path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z" fill="#34A853"/><path d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.548 0 9s.348 2.825.957 4.039l3.007-2.332z" fill="#FBBC05"/><path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z" fill="#EA4335"/></svg>
         Continuer avec Google
       </button>
-      <div class="auth-link" id="forgot-link" onclick="forgotPassword()">Mot de passe oubliÃ© ?</div>
+      <div class="auth-link" id="forgot-link" onclick="forgotPassword()">Mot de passe oubliÃÂ© ?</div>
     </div>
   </div>
 </div>
@@ -319,7 +319,7 @@ onAuthStateChanged(auth, (user) => {
   window._currentUser = user;
   if (user) {
     document.getElementById('user-name-label').textContent = user.displayName || user.email.split('@')[0];
-    document.getElementById('user-plan-label').textContent = 'ConnectÃ©';
+    document.getElementById('user-plan-label').textContent = 'ConnectÃÂ©';
     const letter = (user.displayName || user.email)[0].toUpperCase();
     document.getElementById('user-avatar').textContent = letter;
     closeAuth();
@@ -400,11 +400,11 @@ function buildMsgEl(role, content) {
 
   if (typeof content === 'object' && content.type === 'image_url') {
     const img = document.createElement('img');
-    img.src = content.url; img.alt = 'image gÃ©nÃ©rÃ©e';
+    img.src = content.url; img.alt = 'image gÃÂ©nÃÂ©rÃÂ©e';
     bubble.appendChild(img);
   } else if (typeof content === 'object' && content.type === 'audio_url') {
     const p = document.createElement('p');
-    p.textContent = 'ðµ Musique gÃ©nÃ©rÃ©e';
+    p.textContent = 'Ã°ÂÂÂµ Musique gÃÂ©nÃÂ©rÃÂ©e';
     const audio = document.createElement('audio');
     audio.controls = true; audio.src = content.url;
     bubble.appendChild(p); bubble.appendChild(audio);
@@ -416,7 +416,7 @@ function buildMsgEl(role, content) {
 }
 
 function formatText(text) {
-  // Supprimer les astÃ©risques markdown
+  // Supprimer les astÃÂ©risques markdown
   return text
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
@@ -425,7 +425,7 @@ function formatText(text) {
 
 function appendMsg(role, content) {
   const area = document.getElementById('chat-area');
-  // Enlever welcome si prÃ©sent
+  // Enlever welcome si prÃÂ©sent
   const w = document.getElementById('welcome');
   if (w && w.parentNode === area) area.removeChild(w);
   const el = buildMsgEl(role, content);
@@ -449,7 +449,7 @@ function showLoader() {
   const area = document.getElementById('chat-area');
   const loader = document.createElement('div');
   loader.className = 'msg ai'; loader.id = 'msg-loader';
-  loader.innerHTML = `<div class="loader-wrap"><div class="dots-loader"><span></span><span></span><span></span></div><span class="loader-text">Byte rÃ©flÃ©chitâ¦</span></div>`;
+  loader.innerHTML = `<div class="loader-wrap"><div class="dots-loader"><span></span><span></span><span></span></div><span class="loader-text">Byte rÃÂ©flÃÂ©chitÃ¢ÂÂ¦</span></div>`;
   area.appendChild(loader);
   area.scrollTop = area.scrollHeight;
 }
@@ -464,7 +464,7 @@ async function sendMessage() {
   const text = input.value.trim();
   if (!text && !attachedImage) return;
 
-  // VÃ©rif limite gratuite
+  // VÃÂ©rif limite gratuite
   if (!window._currentUser) {
     if (freeMessages >= FREE_LIMIT) { openAuth(); return; }
     freeMessages++;
@@ -482,7 +482,7 @@ async function sendMessage() {
   input.value = '';
   autoResize(input);
 
-  // Construire message avec image si prÃ©sente
+  // Construire message avec image si prÃÂ©sente
   let msgToSend = text;
   let imageData = null;
   if (attachedImage) {
@@ -500,9 +500,9 @@ async function sendMessage() {
     content: typeof m.content === 'string' ? m.content : '[media]'
   }));
 
-  // DÃ©tecter si l'utilisateur veut une image
-  const wantsImage = /cr[Ã©e]{1,2}[^a-z]*image|gÃ©nÃ¨re[^a-z]*image|dessine|illustre/i.test(text);
-  const wantsMusic = /gÃ©nÃ¨re[^a-z]*musique|crÃ©e[^a-z]*musique|compose[^a-z]*musique/i.test(text);
+  // DÃÂ©tecter si l'utilisateur veut une image
+  const wantsImage = /cr[ÃÂ©e]{1,2}[^a-z]*image|gÃÂ©nÃÂ¨re[^a-z]*image|dessine|illustre/i.test(text);
+  const wantsMusic = /gÃÂ©nÃÂ¨re[^a-z]*musique|crÃÂ©e[^a-z]*musique|compose[^a-z]*musique/i.test(text);
 
   try {
     if (wantsImage) {
@@ -514,7 +514,7 @@ async function sendMessage() {
       const data = await res.json();
       hideLoader();
       if (data.url) appendMsg('ai', { type: 'image_url', url: data.url });
-      else appendMsg('ai', data.error || 'Impossible de gÃ©nÃ©rer l\'image.');
+      else appendMsg('ai', data.error || 'Impossible de gÃÂ©nÃÂ©rer l\'image.');
     } else if (wantsMusic) {
       const res = await fetch(BACKEND + '/api/music', {
         method: 'POST',
@@ -524,7 +524,7 @@ async function sendMessage() {
       const data = await res.json();
       hideLoader();
       if (data.url) appendMsg('ai', { type: 'audio_url', url: data.url });
-      else appendMsg('ai', data.error || 'Impossible de gÃ©nÃ©rer la musique pour l\'instant. Essayez plus tard.');
+      else appendMsg('ai', data.error || 'Impossible de gÃÂ©nÃÂ©rer la musique pour l\'instant. Essayez plus tard.');
     } else {
       // Chat normal (streaming)
       const res = await fetch(BACKEND + '/api/chat', {
@@ -533,7 +533,7 @@ async function sendMessage() {
         body: JSON.stringify({ message: text, model, history, imageData })
       });
       hideLoader();
-      if (!res.ok) { appendMsg('ai', 'Erreur du serveur. RÃ©essayez.'); return; }
+      if (!res.ok) { appendMsg('ai', 'Erreur du serveur. RÃÂ©essayez.'); return; }
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let fullText = '';
@@ -564,7 +564,7 @@ async function sendMessage() {
     }
   } catch(e) {
     hideLoader();
-    appendMsg('ai', 'Erreur de connexion. VÃ©rifiez que le backend est en ligne.');
+    appendMsg('ai', 'Erreur de connexion. VÃÂ©rifiez que le backend est en ligne.');
     console.error(e);
   }
 }
@@ -626,14 +626,14 @@ document.addEventListener('paste', (e) => {
 function toggleVoice() {
   const btn = document.getElementById('mic-btn');
   if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-    alert('La reconnaissance vocale n\'est pas supportÃ©e par ce navigateur.');
+    alert('La reconnaissance vocale n\'est pas supportÃÂ©e par ce navigateur.');
     return;
   }
   if (isRecording) {
     recognition?.stop();
     isRecording = false;
     btn.classList.remove('recording');
-    btn.textContent = 'ð¤';
+    btn.textContent = 'Ã°ÂÂÂ¤';
     return;
   }
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -646,15 +646,15 @@ function toggleVoice() {
     document.getElementById('msg-input').value = transcript;
     autoResize(document.getElementById('msg-input'));
     if (e.results[e.results.length - 1].isFinal) {
-      isRecording = false; btn.classList.remove('recording'); btn.textContent = 'ð¤';
+      isRecording = false; btn.classList.remove('recording'); btn.textContent = 'Ã°ÂÂÂ¤';
     }
   };
-  recognition.onerror = () => { isRecording = false; btn.classList.remove('recording'); btn.textContent = 'ð¤'; };
-  recognition.onend = () => { isRecording = false; btn.classList.remove('recording'); btn.textContent = 'ð¤'; };
+  recognition.onerror = () => { isRecording = false; btn.classList.remove('recording'); btn.textContent = 'Ã°ÂÂÂ¤'; };
+  recognition.onend = () => { isRecording = false; btn.classList.remove('recording'); btn.textContent = 'Ã°ÂÂÂ¤'; };
   recognition.start();
   isRecording = true;
   btn.classList.add('recording');
-  btn.textContent = 'ð´';
+  btn.textContent = 'Ã°ÂÂÂ´';
 }
 
 // ---- AUTH ----
@@ -664,7 +664,7 @@ function closeAuth() { document.getElementById('auth-overlay').classList.remove(
 function switchTab(tab) {
   authTab = tab;
   document.querySelectorAll('.auth-tab').forEach((t, i) => t.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='signup')));
-  document.getElementById('auth-submit-btn').textContent = tab === 'login' ? 'Se connecter' : 'CrÃ©er le compte';
+  document.getElementById('auth-submit-btn').textContent = tab === 'login' ? 'Se connecter' : 'CrÃÂ©er le compte';
   document.getElementById('forgot-link').style.display = tab === 'login' ? 'block' : 'none';
   document.getElementById('auth-error').textContent = '';
 }
@@ -678,7 +678,7 @@ async function submitAuth() {
     if (authTab === 'login') await window._signInWithEmailAndPassword(window._auth, email, pass);
     else await window._createUserWithEmailAndPassword(window._auth, email, pass);
   } catch(e) {
-    const msgs = { 'auth/wrong-password': 'Mot de passe incorrect.', 'auth/user-not-found': 'Compte introuvable.', 'auth/email-already-in-use': 'Email dÃ©jÃ  utilisÃ©.', 'auth/weak-password': 'Mot de passe trop faible.' };
+    const msgs = { 'auth/wrong-password': 'Mot de passe incorrect.', 'auth/user-not-found': 'Compte introuvable.', 'auth/email-already-in-use': 'Email dÃÂ©jÃÂ  utilisÃÂ©.', 'auth/weak-password': 'Mot de passe trop faible.' };
     errEl.textContent = msgs[e.code] || e.message;
   }
 }
@@ -692,12 +692,12 @@ async function forgotPassword() {
   try {
     await window._sendPasswordResetEmail(window._auth, email);
     document.getElementById('auth-error').style.color = '#22c55e';
-    document.getElementById('auth-error').textContent = 'Email de rÃ©initialisation envoyÃ© !';
+    document.getElementById('auth-error').textContent = 'Email de rÃÂ©initialisation envoyÃÂ© !';
   } catch(e) { document.getElementById('auth-error').textContent = e.message; }
 }
 
 document.getElementById('user-btn').onclick = () => {
-  if (window._currentUser) { if(confirm('Se dÃ©connecter ?')) window._signOut(window._auth); }
+  if (window._currentUser) { if(confirm('Se dÃÂ©connecter ?')) window._signOut(window._auth); }
   else openAuth();
 };
 document.getElementById('new-chat-btn').onclick = newConversation;
