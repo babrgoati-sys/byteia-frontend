@@ -129,10 +129,7 @@
     padding: 11px 16px; border-radius: 14px; font-size: 14px; line-height: 1.55;
     max-width: 75%;
   }
-  .msg.user .msg-bubble {
-    background: linear-gradient(135deg, #6c7aff, #a78bfa);
-    color: white; border-bottom-right-radius: 4px;
-  }
+  .msg.user .msg-bubble { background: #f4f4f6; border-radius: 14px; color: #1a1a1a; max-width: 75%; }
   .msg.ai .msg-bubble {
     background: #f4f4f6; color: #1a1a1a; border-bottom-left-radius: 4px;
   }
@@ -240,6 +237,9 @@
   /* SCROLLBAR */
   #chat-area::-webkit-scrollbar { width: 4px; }
   #chat-area::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 4px; }
+.streaming-cursor { display:inline-block; width:2px; height:16px; background:#6c7aff; margin-left:2px; vertical-align:middle; animation:blink .7s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+#main-header { display:none; }
 </style>
 </head>
 <body>
@@ -247,72 +247,21 @@
 <!-- SIDEBAR -->
 <div id="sidebar">
   <div id="sidebar-header">
-    <div class="logo-wrap">
-      <div class="logo-icon">
-        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="4" y="4" width="14" height="14" rx="4" fill="#6c7aff" opacity="0.85"/>
-          <rect x="14" y="14" width="14" height="14" rx="4" fill="#a78bfa" opacity="0.85"/>
-        </svg>
-      </div>
-      <span class="logo-text">Byte<span>IA</span></span>
-    </div>
-  </div>
-  <button id="new-chat-btn">✏️ Nouvelle conversation</button>
-  <div id="conv-list"></div>
-  <div id="sidebar-footer">
-    <button id="user-btn">
-      <div class="avatar" id="user-avatar">B</div>
-      <div class="user-info">
-        <span class="user-name" id="user-name-label">Se connecter</span>
-        <span class="user-plan" id="user-plan-label">Plan gratuit</span>
-      </div>
-    </button>
-  </div>
-</div>
-
-<!-- RESIZER -->
-<div id="resizer"></div>
-
-<!-- MAIN -->
-<div id="main">
-  <div id="main-header">
-    <span style="font-size:14px;color:#888;">Conversations</span>
-    <select id="model-selector">
-      <option value="groq">⚡ Groq (rapide)</option>
-      <option value="gemini">✨ Gemini</option>
-      <option value="openrouter">🌐 OpenRouter</option>
-      <option value="mistral">🇫🇷 Mistral</option>
-    </select>
-  </div>
-
-  <div id="chat-area">
-    <div id="welcome">
-      <h1>Comment puis-je vous aider ?</h1>
-      <div class="suggestions-grid">
-        <button class="suggestion-pill" onclick="sendSuggestion('Crée une image de')">📷 Créer une image</button>
-        <button class="suggestion-pill" onclick="sendSuggestion('Génère une musique avec comme ambiance:')">🎵 Créer une musique</button>
-        <button class="suggestion-pill" onclick="sendSuggestion('Résume ce texte:')">📄 Résumer un texte</button>
-        <button class="suggestion-pill" onclick="sendSuggestion('Rédige un email professionnel pour')">✉️ Rédiger un email</button>
-        <button class="suggestion-pill" onclick="sendSuggestion('Traduis ce texte en anglais:')">🌍 Traduire</button>
-        <button class="suggestion-pill" onclick="sendSuggestion('Explique-moi')">💡 Expliquer un concept</button>
-        <button class="suggestion-pill" onclick="sendSuggestion('Écris un poème sur')">✍️ Écrire un poème</button>
-      </div>
-    </div>
-  </div>
+    <div id="sidebar-header"><svg class="logo-svg" viewBox="0 0 200 52" width="180" height="52" xmlns="http://www.w3.org/2000/svg"><text x="0" y="34" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" font-size="32" font-weight="700" fill="#0f0f1a" letter-spacing="-1">Byte<tspan fill="#6c7aff">IA</tspan></text><line x1="0" y1="40" x2="200" y2="40" stroke="#d0d0d0" stroke-width="0.8"/><text x="0" y="51" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" font-size="7.5" font-weight="400" fill="#aaa" letter-spacing="3">INTELLIGENCE ARTIFICIELLE</text></svg></div>
 
   <div id="input-zone">
     <div id="img-preview">
       <img id="img-preview-img" src="" alt="preview">
-      <button onclick="clearImage()">✕</button>
+      <button onclick="clearImage()">â</button>
     </div>
     <div id="input-box">
       <div id="input-actions-left">
-        <button class="input-icon-btn" id="img-btn" onclick="document.getElementById('img-input').click()" title="Joindre une image">📷</button>
+        <button class="input-icon-btn" id="img-btn" onclick="document.getElementById('img-input').click()" title="Joindre une image">ð·</button>
         <input type="file" id="img-input" accept="image/*" style="display:none" onchange="handleImageSelect(this)">
-        <button class="input-icon-btn" id="mic-btn" onclick="toggleVoice()" title="Dicter un message">🎤</button>
+        <button class="input-icon-btn" id="mic-btn" onclick="toggleVoice()" title="Dicter un message">ð¤</button>
       </div>
-      <textarea id="msg-input" placeholder="Écrivez un message…" rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
-      <button id="send-btn" onclick="sendMessage()">➤</button>
+      <textarea id="msg-input" placeholder="Ãcrivez un messageâ¦" rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+      <button id="send-btn" onclick="sendMessage()">â¤</button>
     </div>
   </div>
 </div>
@@ -320,11 +269,11 @@
 <!-- AUTH MODAL -->
 <div id="auth-overlay">
   <div id="auth-modal">
-    <button class="auth-close" onclick="closeAuth()">×</button>
+    <button class="auth-close" onclick="closeAuth()">Ã</button>
     <h2>Bienvenue sur Byte IA</h2>
     <div class="auth-tabs">
       <div class="auth-tab active" onclick="switchTab('login')">Se connecter</div>
-      <div class="auth-tab" onclick="switchTab('signup')">Créer un compte</div>
+      <div class="auth-tab" onclick="switchTab('signup')">CrÃ©er un compte</div>
     </div>
     <div class="auth-form">
       <input type="email" id="auth-email" placeholder="Email">
@@ -335,7 +284,7 @@
         <svg width="18" height="18" viewBox="0 0 18 18"><path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/><path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z" fill="#34A853"/><path d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.548 0 9s.348 2.825.957 4.039l3.007-2.332z" fill="#FBBC05"/><path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z" fill="#EA4335"/></svg>
         Continuer avec Google
       </button>
-      <div class="auth-link" id="forgot-link" onclick="forgotPassword()">Mot de passe oublié ?</div>
+      <div class="auth-link" id="forgot-link" onclick="forgotPassword()">Mot de passe oubliÃ© ?</div>
     </div>
   </div>
 </div>
@@ -370,7 +319,7 @@ onAuthStateChanged(auth, (user) => {
   window._currentUser = user;
   if (user) {
     document.getElementById('user-name-label').textContent = user.displayName || user.email.split('@')[0];
-    document.getElementById('user-plan-label').textContent = 'Connecté';
+    document.getElementById('user-plan-label').textContent = 'ConnectÃ©';
     const letter = (user.displayName || user.email)[0].toUpperCase();
     document.getElementById('user-avatar').textContent = letter;
     closeAuth();
@@ -451,11 +400,11 @@ function buildMsgEl(role, content) {
 
   if (typeof content === 'object' && content.type === 'image_url') {
     const img = document.createElement('img');
-    img.src = content.url; img.alt = 'image générée';
+    img.src = content.url; img.alt = 'image gÃ©nÃ©rÃ©e';
     bubble.appendChild(img);
   } else if (typeof content === 'object' && content.type === 'audio_url') {
     const p = document.createElement('p');
-    p.textContent = '🎵 Musique générée';
+    p.textContent = 'ðµ Musique gÃ©nÃ©rÃ©e';
     const audio = document.createElement('audio');
     audio.controls = true; audio.src = content.url;
     bubble.appendChild(p); bubble.appendChild(audio);
@@ -467,7 +416,7 @@ function buildMsgEl(role, content) {
 }
 
 function formatText(text) {
-  // Supprimer les astérisques markdown
+  // Supprimer les astÃ©risques markdown
   return text
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
@@ -476,7 +425,7 @@ function formatText(text) {
 
 function appendMsg(role, content) {
   const area = document.getElementById('chat-area');
-  // Enlever welcome si présent
+  // Enlever welcome si prÃ©sent
   const w = document.getElementById('welcome');
   if (w && w.parentNode === area) area.removeChild(w);
   const el = buildMsgEl(role, content);
@@ -500,7 +449,7 @@ function showLoader() {
   const area = document.getElementById('chat-area');
   const loader = document.createElement('div');
   loader.className = 'msg ai'; loader.id = 'msg-loader';
-  loader.innerHTML = `<div class="loader-wrap"><div class="dots-loader"><span></span><span></span><span></span></div><span class="loader-text">Byte réfléchit…</span></div>`;
+  loader.innerHTML = `<div class="loader-wrap"><div class="dots-loader"><span></span><span></span><span></span></div><span class="loader-text">Byte rÃ©flÃ©chitâ¦</span></div>`;
   area.appendChild(loader);
   area.scrollTop = area.scrollHeight;
 }
@@ -515,7 +464,7 @@ async function sendMessage() {
   const text = input.value.trim();
   if (!text && !attachedImage) return;
 
-  // Vérif limite gratuite
+  // VÃ©rif limite gratuite
   if (!window._currentUser) {
     if (freeMessages >= FREE_LIMIT) { openAuth(); return; }
     freeMessages++;
@@ -533,7 +482,7 @@ async function sendMessage() {
   input.value = '';
   autoResize(input);
 
-  // Construire message avec image si présente
+  // Construire message avec image si prÃ©sente
   let msgToSend = text;
   let imageData = null;
   if (attachedImage) {
@@ -544,16 +493,16 @@ async function sendMessage() {
   appendMsg('user', userContent);
   showLoader();
 
-  const model = document.getElementById('model-selector').value;
+  const model = 'groq';
   const conv = conversations.find(c => c.id === currentConvId);
   const history = (conv?.messages || []).slice(-10).map(m => ({
     role: m.role === 'user' ? 'user' : 'assistant',
     content: typeof m.content === 'string' ? m.content : '[media]'
   }));
 
-  // Détecter si l'utilisateur veut une image
-  const wantsImage = /cr[ée]{1,2}[^a-z]*image|génère[^a-z]*image|dessine|illustre/i.test(text);
-  const wantsMusic = /génère[^a-z]*musique|crée[^a-z]*musique|compose[^a-z]*musique/i.test(text);
+  // DÃ©tecter si l'utilisateur veut une image
+  const wantsImage = /cr[Ã©e]{1,2}[^a-z]*image|gÃ©nÃ¨re[^a-z]*image|dessine|illustre/i.test(text);
+  const wantsMusic = /gÃ©nÃ¨re[^a-z]*musique|crÃ©e[^a-z]*musique|compose[^a-z]*musique/i.test(text);
 
   try {
     if (wantsImage) {
@@ -565,7 +514,7 @@ async function sendMessage() {
       const data = await res.json();
       hideLoader();
       if (data.url) appendMsg('ai', { type: 'image_url', url: data.url });
-      else appendMsg('ai', data.error || 'Impossible de générer l\'image.');
+      else appendMsg('ai', data.error || 'Impossible de gÃ©nÃ©rer l\'image.');
     } else if (wantsMusic) {
       const res = await fetch(BACKEND + '/api/music', {
         method: 'POST',
@@ -575,7 +524,7 @@ async function sendMessage() {
       const data = await res.json();
       hideLoader();
       if (data.url) appendMsg('ai', { type: 'audio_url', url: data.url });
-      else appendMsg('ai', data.error || 'Impossible de générer la musique pour l\'instant. Essayez plus tard.');
+      else appendMsg('ai', data.error || 'Impossible de gÃ©nÃ©rer la musique pour l\'instant. Essayez plus tard.');
     } else {
       // Chat normal (streaming)
       const res = await fetch(BACKEND + '/api/chat', {
@@ -584,7 +533,7 @@ async function sendMessage() {
         body: JSON.stringify({ message: text, model, history, imageData })
       });
       hideLoader();
-      if (!res.ok) { appendMsg('ai', 'Erreur du serveur. Réessayez.'); return; }
+      if (!res.ok) { appendMsg('ai', 'Erreur du serveur. RÃ©essayez.'); return; }
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let fullText = '';
@@ -615,7 +564,7 @@ async function sendMessage() {
     }
   } catch(e) {
     hideLoader();
-    appendMsg('ai', 'Erreur de connexion. Vérifiez que le backend est en ligne.');
+    appendMsg('ai', 'Erreur de connexion. VÃ©rifiez que le backend est en ligne.');
     console.error(e);
   }
 }
@@ -677,14 +626,14 @@ document.addEventListener('paste', (e) => {
 function toggleVoice() {
   const btn = document.getElementById('mic-btn');
   if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-    alert('La reconnaissance vocale n\'est pas supportée par ce navigateur.');
+    alert('La reconnaissance vocale n\'est pas supportÃ©e par ce navigateur.');
     return;
   }
   if (isRecording) {
     recognition?.stop();
     isRecording = false;
     btn.classList.remove('recording');
-    btn.textContent = '🎤';
+    btn.textContent = 'ð¤';
     return;
   }
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -697,15 +646,15 @@ function toggleVoice() {
     document.getElementById('msg-input').value = transcript;
     autoResize(document.getElementById('msg-input'));
     if (e.results[e.results.length - 1].isFinal) {
-      isRecording = false; btn.classList.remove('recording'); btn.textContent = '🎤';
+      isRecording = false; btn.classList.remove('recording'); btn.textContent = 'ð¤';
     }
   };
-  recognition.onerror = () => { isRecording = false; btn.classList.remove('recording'); btn.textContent = '🎤'; };
-  recognition.onend = () => { isRecording = false; btn.classList.remove('recording'); btn.textContent = '🎤'; };
+  recognition.onerror = () => { isRecording = false; btn.classList.remove('recording'); btn.textContent = 'ð¤'; };
+  recognition.onend = () => { isRecording = false; btn.classList.remove('recording'); btn.textContent = 'ð¤'; };
   recognition.start();
   isRecording = true;
   btn.classList.add('recording');
-  btn.textContent = '🔴';
+  btn.textContent = 'ð´';
 }
 
 // ---- AUTH ----
@@ -715,7 +664,7 @@ function closeAuth() { document.getElementById('auth-overlay').classList.remove(
 function switchTab(tab) {
   authTab = tab;
   document.querySelectorAll('.auth-tab').forEach((t, i) => t.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='signup')));
-  document.getElementById('auth-submit-btn').textContent = tab === 'login' ? 'Se connecter' : 'Créer le compte';
+  document.getElementById('auth-submit-btn').textContent = tab === 'login' ? 'Se connecter' : 'CrÃ©er le compte';
   document.getElementById('forgot-link').style.display = tab === 'login' ? 'block' : 'none';
   document.getElementById('auth-error').textContent = '';
 }
@@ -729,7 +678,7 @@ async function submitAuth() {
     if (authTab === 'login') await window._signInWithEmailAndPassword(window._auth, email, pass);
     else await window._createUserWithEmailAndPassword(window._auth, email, pass);
   } catch(e) {
-    const msgs = { 'auth/wrong-password': 'Mot de passe incorrect.', 'auth/user-not-found': 'Compte introuvable.', 'auth/email-already-in-use': 'Email déjà utilisé.', 'auth/weak-password': 'Mot de passe trop faible.' };
+    const msgs = { 'auth/wrong-password': 'Mot de passe incorrect.', 'auth/user-not-found': 'Compte introuvable.', 'auth/email-already-in-use': 'Email dÃ©jÃ  utilisÃ©.', 'auth/weak-password': 'Mot de passe trop faible.' };
     errEl.textContent = msgs[e.code] || e.message;
   }
 }
@@ -743,12 +692,12 @@ async function forgotPassword() {
   try {
     await window._sendPasswordResetEmail(window._auth, email);
     document.getElementById('auth-error').style.color = '#22c55e';
-    document.getElementById('auth-error').textContent = 'Email de réinitialisation envoyé !';
+    document.getElementById('auth-error').textContent = 'Email de rÃ©initialisation envoyÃ© !';
   } catch(e) { document.getElementById('auth-error').textContent = e.message; }
 }
 
 document.getElementById('user-btn').onclick = () => {
-  if (window._currentUser) { if(confirm('Se déconnecter ?')) window._signOut(window._auth); }
+  if (window._currentUser) { if(confirm('Se dÃ©connecter ?')) window._signOut(window._auth); }
   else openAuth();
 };
 document.getElementById('new-chat-btn').onclick = newConversation;
