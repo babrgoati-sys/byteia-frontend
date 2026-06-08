@@ -283,35 +283,49 @@
   }
   @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
-  /* MESSAGE ACTIONS (copy / speak / share) - toujours visibles, bien distincts */
+  /* MESSAGE ACTIONS - icônes seules avec tooltip au survol */
   .msg-actions {
-    display: flex; gap: 4px; margin-top: 12px;
-    padding-top: 10px;
-    border-top: 1px solid var(--border);
+    display: flex; gap: 2px; margin-top: 4px;
+    margin-left: -6px;
     align-items: center;
   }
   .msg-actions button {
-    background: transparent; border: 1px solid var(--border-strong);
-    height: 30px; min-width: 32px; padding: 0 8px;
-    border-radius: 8px;
-    display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+    background: transparent; border: none;
+    width: 30px; height: 30px; padding: 0;
+    border-radius: 6px;
+    display: inline-flex; align-items: center; justify-content: center;
     cursor: pointer; color: var(--text-mute);
-    transition: all 0.15s;
-    font-size: 12px; font-family: inherit;
+    transition: background 0.15s, color 0.15s;
+    position: relative;
   }
-  .msg-actions button:hover {
-    background: var(--bg-hover); color: var(--text);
-    border-color: var(--text-mute);
+  .msg-actions button:hover { background: var(--bg-hover); color: var(--text); }
+  .msg-actions button svg { width: 15px; height: 15px; }
+  .msg-actions button span { display: none; } /* on cache les labels */
+  .msg-actions button.copied { color: #22c55e; }
+  .msg-actions button.speaking { color: var(--accent); background: var(--bg-active); }
+  /* Tooltip stylé au-dessus du bouton, façon Claude */
+  .msg-actions button::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+    background: #1a1a1a; color: white;
+    padding: 5px 10px; border-radius: 7px;
+    font-size: 12px; white-space: nowrap;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.15s 0.4s;
+    z-index: 60;
   }
-  .msg-actions button svg { width: 13px; height: 13px; }
-  .msg-actions button.copied {
-    color: #22c55e; border-color: #22c55e;
-    background: rgba(34,197,94,0.08);
+  .msg-actions button::before {
+    content: ''; position: absolute;
+    bottom: calc(100% + 1px); left: 50%; transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: #1a1a1a;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.15s 0.4s;
   }
-  .msg-actions button.speaking {
-    color: var(--accent); background: var(--bg-active);
-    border-color: var(--accent);
-  }
+  .msg-actions button:hover::after, .msg-actions button:hover::before { opacity: 1; }
+  [data-theme="dark"] .msg-actions button::after { background: #f4f4f5; color: #1a1a1a; }
+  [data-theme="dark"] .msg-actions button::before { border-top-color: #f4f4f5; }
 
   /* CODE BLOCK avec header + boutons */
   .code-block {
@@ -2149,17 +2163,14 @@ function buildActionBar(text) {
   bar.dataset.text = text;
   const tCopy = t('action.copy'), tSpeak = t('action.speak'), tShare = t('action.share');
   bar.innerHTML =
-    '<button onclick="copyMsg(this)" title="' + tCopy + '" aria-label="' + tCopy + '">' +
+    '<button onclick="copyMsg(this)" data-tip="' + tCopy + '" aria-label="' + tCopy + '">' +
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>' +
-    '<span>' + tCopy + '</span>' +
     '</button>' +
-    '<button onclick="speakMsg(this)" title="' + tSpeak + '" aria-label="' + tSpeak + '">' +
+    '<button onclick="speakMsg(this)" data-tip="' + tSpeak + '" aria-label="' + tSpeak + '">' +
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>' +
-    '<span>' + tSpeak + '</span>' +
     '</button>' +
-    '<button onclick="shareMsg(this)" title="' + tShare + '" aria-label="' + tShare + '">' +
+    '<button onclick="shareMsg(this)" data-tip="' + tShare + '" aria-label="' + tShare + '">' +
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>' +
-    '<span>' + tShare + '</span>' +
     '</button>';
   return bar;
 }
@@ -2179,9 +2190,9 @@ async function copyMsg(btn) {
     ta.remove();
   }
   btn.classList.add('copied');
-  const old = btn.getAttribute('title');
-  btn.setAttribute('title', t('action.copied'));
-  setTimeout(() => { btn.classList.remove('copied'); btn.setAttribute('title', old); }, 1500);
+  const old = btn.getAttribute('data-tip');
+  btn.setAttribute('data-tip', t('action.copied'));
+  setTimeout(() => { btn.classList.remove('copied'); btn.setAttribute('data-tip', old); }, 1500);
 }
 
 function speakMsg(btn) {
