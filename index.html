@@ -283,49 +283,25 @@
   }
   @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
-  /* MESSAGE ACTIONS - icônes seules avec tooltip au survol */
+  /* MESSAGE ACTIONS - icônes simples sous le message, pas de tooltip */
   .msg-actions {
-    display: flex; gap: 2px; margin-top: 4px;
+    display: flex; gap: 4px; margin-top: 10px;
     margin-left: -6px;
     align-items: center;
   }
   .msg-actions button {
     background: transparent; border: none;
-    width: 30px; height: 30px; padding: 0;
-    border-radius: 6px;
+    width: 32px; height: 32px; padding: 0;
+    border-radius: 7px;
     display: inline-flex; align-items: center; justify-content: center;
     cursor: pointer; color: var(--text-mute);
     transition: background 0.15s, color 0.15s;
-    position: relative;
   }
   .msg-actions button:hover { background: var(--bg-hover); color: var(--text); }
-  .msg-actions button svg { width: 15px; height: 15px; }
+  .msg-actions button svg { width: 16px; height: 16px; }
   .msg-actions button span { display: none; } /* on cache les labels */
   .msg-actions button.copied { color: #22c55e; }
   .msg-actions button.speaking { color: var(--accent); background: var(--bg-active); }
-  /* Tooltip stylé au-dessus du bouton, façon Claude */
-  .msg-actions button::after {
-    content: attr(data-tip);
-    position: absolute;
-    bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
-    background: #1a1a1a; color: white;
-    padding: 5px 10px; border-radius: 7px;
-    font-size: 12px; white-space: nowrap;
-    opacity: 0; pointer-events: none;
-    transition: opacity 0.15s 0.4s;
-    z-index: 60;
-  }
-  .msg-actions button::before {
-    content: ''; position: absolute;
-    bottom: calc(100% + 1px); left: 50%; transform: translateX(-50%);
-    border: 5px solid transparent;
-    border-top-color: #1a1a1a;
-    opacity: 0; pointer-events: none;
-    transition: opacity 0.15s 0.4s;
-  }
-  .msg-actions button:hover::after, .msg-actions button:hover::before { opacity: 1; }
-  [data-theme="dark"] .msg-actions button::after { background: #f4f4f5; color: #1a1a1a; }
-  [data-theme="dark"] .msg-actions button::before { border-top-color: #f4f4f5; }
 
   /* CODE BLOCK avec header + boutons */
   .code-block {
@@ -2399,8 +2375,9 @@ async function sendMessage() {
   }));
 
   const lower = text.toLowerCase();
-  const wantsImage = /\b(image|photo|dessine?|illustre|crée? une image|génère? une image)\b/i.test(text) && /(crée?|génère?|dessine|fais|illustre|montre)/i.test(text);
-  const wantsMusic = /\b(musique|chanson|mélodie|son)\b/i.test(text) && /(crée?|génère?|compose|fais)/i.test(text);
+  // Si une image est attachée, on force le mode vision (jamais generation)
+  const wantsImage = !imageData && /\b(image|photo|dessine?|illustre|crée? une image|génère? une image)\b/i.test(text) && /(crée?|génère?|dessine|fais|illustre|montre)/i.test(text);
+  const wantsMusic = !imageData && /\b(musique|chanson|mélodie|son)\b/i.test(text) && /(crée?|génère?|compose|fais)/i.test(text);
 
   try {
     if (wantsImage) {
