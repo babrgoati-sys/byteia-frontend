@@ -283,28 +283,70 @@
   }
   @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
-  /* MESSAGE ACTIONS (copy / speak / share) */
+  /* MESSAGE ACTIONS (copy / speak / share) - toujours visibles, bien distincts */
   .msg-actions {
-    display: flex; gap: 2px; margin-top: 6px;
-    margin-left: -6px;
-    opacity: 0; transition: opacity 0.2s;
+    display: flex; gap: 4px; margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    align-items: center;
   }
-  .msg.ai:hover .msg-actions, .msg-actions.always { opacity: 1; }
   .msg-actions button {
-    background: transparent; border: none;
-    width: 30px; height: 30px; border-radius: 7px;
-    display: flex; align-items: center; justify-content: center;
+    background: transparent; border: 1px solid var(--border-strong);
+    height: 30px; min-width: 32px; padding: 0 8px;
+    border-radius: 8px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 5px;
     cursor: pointer; color: var(--text-mute);
+    transition: all 0.15s;
+    font-size: 12px; font-family: inherit;
+  }
+  .msg-actions button:hover {
+    background: var(--bg-hover); color: var(--text);
+    border-color: var(--text-mute);
+  }
+  .msg-actions button svg { width: 13px; height: 13px; }
+  .msg-actions button.copied {
+    color: #22c55e; border-color: #22c55e;
+    background: rgba(34,197,94,0.08);
+  }
+  .msg-actions button.speaking {
+    color: var(--accent); background: var(--bg-active);
+    border-color: var(--accent);
+  }
+
+  /* CODE BLOCK avec header + boutons */
+  .code-block {
+    margin: 10px 0; border-radius: 10px;
+    overflow: hidden; border: 1px solid var(--border-strong);
+    background: var(--bubble);
+  }
+  .code-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 12px;
+    background: var(--bg-soft);
+    border-bottom: 1px solid var(--border);
+    font-size: 12px; color: var(--text-mute);
+    font-family: 'SF Mono', Menlo, monospace;
+  }
+  .code-lang { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .code-actions { display: flex; gap: 4px; }
+  .code-actions button {
+    background: transparent; border: none;
+    padding: 4px 8px; border-radius: 6px;
+    cursor: pointer; color: var(--text-mute);
+    font-size: 11px; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 4px;
     transition: background 0.15s, color 0.15s;
-    padding: 0;
   }
-  .msg-actions button:hover { background: var(--bg-hover); color: var(--text); }
-  .msg-actions button svg { width: 14px; height: 14px; }
-  .msg-actions button.copied { color: #22c55e; }
-  .msg-actions button.speaking { color: var(--accent); background: var(--bg-active); }
-  @media (max-width: 768px) {
-    .msg-actions { opacity: 1; }
+  .code-actions button:hover { background: var(--bg-hover); color: var(--text); }
+  .code-actions button.done { color: #22c55e; }
+  .code-actions button svg { width: 12px; height: 12px; }
+  .code-block pre {
+    margin: 0 !important; background: transparent !important;
+    padding: 14px !important; overflow-x: auto;
+    font-size: 13px; line-height: 1.5;
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
   }
+  .code-block pre code { background: transparent !important; padding: 0 !important; }
 
   /* LOADER */
   .loader-wrap {
@@ -1795,13 +1837,14 @@ function applyI18n() {
 window.t = t;
 window.applyI18n = applyI18n;
 
-// ---- MODELES (3 NIVEAUX) ----
+// ---- MODELES (3 NIVEAUX) - MODE LIBRE : tout débloqué avec un pseudo ----
 const TIERS = {
-  flash:    { guestLimit: 5,  userLimit: 50 },
-  thinking: { guestLimit: 0,  userLimit: 10 },
-  pro:      { guestLimit: 0,  userLimit: 3  }
+  flash:    { dailyLimit: 50 },
+  thinking: { dailyLimit: 10 },
+  pro:      { dailyLimit: 3  }
 };
 
+function hasPseudo() { return !!localStorage.getItem('bytePseudo'); }
 function getCurrentTier() {
   const t = localStorage.getItem('byteTier');
   if (t === 'flash' || t === 'thinking' || t === 'pro') return t;
@@ -1809,13 +1852,11 @@ function getCurrentTier() {
 }
 function setCurrentTier(tier) {
   if (!TIERS[tier]) return;
-  if (!window._currentUser && tier !== 'flash') return; // invité = flash only
   localStorage.setItem('byteTier', tier);
   refreshModelLabel();
 }
 function getTierLimit(tier) {
-  const isUser = !!window._currentUser;
-  return isUser ? TIERS[tier].userLimit : TIERS[tier].guestLimit;
+  return TIERS[tier].dailyLimit;
 }
 function getTierUsage(tier) {
   const today = new Date().toISOString().slice(0, 10);
@@ -1871,29 +1912,19 @@ function closeModelMenu() {
 function buildModelMenu() {
   const menu = document.getElementById('model-picker-menu');
   const cur = getCurrentTier();
-  const isUser = !!window._currentUser;
-  const lockSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
   const checkSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
   let html = '';
   for (const tier of ['flash', 'thinking', 'pro']) {
     const limit = getTierLimit(tier);
-    const locked = limit === 0;
-    const usage = locked ? null : getTierUsage(tier);
+    const usage = getTierUsage(tier);
     const isCurrent = cur === tier;
-    const onclick = locked ? "openAuth(); closeModelMenu()" : `setCurrentTier('${tier}'); closeModelMenu()`;
-    let quotaText = '';
-    if (locked) {
-      quotaText = '<span class="model-option-badge">' + t('tier.locked') + '</span>';
-    } else if (limit > 0) {
-      quotaText = '<div class="model-quota">' + usage.remaining + ' / ' + limit + ' ' + t('tier.remaining') + '</div>';
-    }
+    const onclick = `setCurrentTier('${tier}'); closeModelMenu()`;
+    const quotaText = '<div class="model-quota">' + usage.remaining + ' / ' + limit + ' ' + t('tier.remaining') + '</div>';
     html +=
-      '<div class="model-option' + (locked ? ' locked' : '') + '" onclick="' + onclick + '">' +
+      '<div class="model-option" onclick="' + onclick + '">' +
       '<div class="model-option-check">' + (isCurrent ? checkSvg : '') + '</div>' +
       '<div class="model-option-text">' +
-      '<div class="model-option-name">Byte ' + t('tier.' + tier) +
-      (locked ? ' <span class="model-option-lock">' + lockSvg + '</span>' : '') +
-      '</div>' +
+      '<div class="model-option-name">Byte ' + t('tier.' + tier) + '</div>' +
       '<div class="model-option-desc">' + t('tier.' + tier + '_desc') + '</div>' +
       quotaText +
       '</div></div>';
@@ -2120,12 +2151,15 @@ function buildActionBar(text) {
   bar.innerHTML =
     '<button onclick="copyMsg(this)" title="' + tCopy + '" aria-label="' + tCopy + '">' +
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>' +
+    '<span>' + tCopy + '</span>' +
     '</button>' +
     '<button onclick="speakMsg(this)" title="' + tSpeak + '" aria-label="' + tSpeak + '">' +
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>' +
+    '<span>' + tSpeak + '</span>' +
     '</button>' +
     '<button onclick="shareMsg(this)" title="' + tShare + '" aria-label="' + tShare + '">' +
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>' +
+    '<span>' + tShare + '</span>' +
     '</button>';
   return bar;
 }
@@ -2185,20 +2219,96 @@ async function shareMsg(btn) {
 function escapeHtml(s) {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
+// Map langue -> extension fichier (pour le download)
+const CODE_EXT = {
+  js: 'js', javascript: 'js', ts: 'ts', typescript: 'ts',
+  jsx: 'jsx', tsx: 'tsx', py: 'py', python: 'py',
+  html: 'html', css: 'css', scss: 'scss',
+  json: 'json', xml: 'xml', yaml: 'yml', yml: 'yml',
+  bash: 'sh', shell: 'sh', sh: 'sh',
+  sql: 'sql', md: 'md', markdown: 'md',
+  rb: 'rb', ruby: 'rb', go: 'go', rs: 'rs', rust: 'rs',
+  c: 'c', cpp: 'cpp', 'c++': 'cpp', cs: 'cs', csharp: 'cs',
+  java: 'java', php: 'php', swift: 'swift', kotlin: 'kt', kt: 'kt',
+  vue: 'vue', svelte: 'svelte', dart: 'dart', r: 'r', lua: 'lua'
+};
+function buildCodeBlock(lang, code) {
+  const escaped = escapeHtml(code).trim();
+  // Encoder le code brut en base64 pour l'embarquer dans le DOM sans souci d'escaping
+  const b64 = btoa(unescape(encodeURIComponent(code.trim())));
+  const langLabel = lang || 'code';
+  const copySvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+  const dlSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
+  return `<div class="code-block" data-code="${b64}" data-lang="${langLabel}">
+    <div class="code-header">
+      <span class="code-lang">${langLabel}</span>
+      <div class="code-actions">
+        <button onclick="copyCodeBlock(this)">${copySvg}<span>Copier</span></button>
+        <button onclick="downloadCodeBlock(this)">${dlSvg}<span>Télécharger</span></button>
+      </div>
+    </div>
+    <pre><code>${escaped}</code></pre>
+  </div>`;
+}
 function formatText(text) {
-  let t = escapeHtml(text);
-  // code blocks
-  t = t.replace(/```([\s\S]*?)```/g, (m, c) => '<pre><code>' + c + '</code></pre>');
-  // inline code
-  t = t.replace(/`([^`]+)`/g, '<code>$1</code>');
-  // bold then italic
+  // Étape 1 : extraire les blocs de code AVANT escape, pour préserver leur contenu brut
+  const codeBlocks = [];
+  let t = text.replace(/```([\w+-]*)\n?([\s\S]*?)```/g, (m, lang, code) => {
+    const idx = codeBlocks.length;
+    codeBlocks.push({ lang: lang.toLowerCase(), code });
+    return `CODE${idx}`;
+  });
+  // Échapper le reste
+  t = escapeHtml(t);
+  // Inline code
+  t = t.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+  // Bold
   t = t.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  // Italic
   t = t.replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g, '<em>$1</em>');
-  // links
+  // Links
   t = t.replace(/\bhttps?:\/\/[^\s<]+/g, m => '<a href="' + m + '" target="_blank" rel="noopener">' + m + '</a>');
-  // newlines
+  // Newlines
   t = t.replace(/\n/g, '<br>');
+  // Réinjecter les blocs de code (avec HTML déjà formaté)
+  t = t.replace(/CODE(\d+)/g, (m, i) => buildCodeBlock(codeBlocks[+i].lang, codeBlocks[+i].code));
   return t;
+}
+function decodeB64(b64) {
+  try { return decodeURIComponent(escape(atob(b64))); } catch(_) { return atob(b64); }
+}
+function copyCodeBlock(btn) {
+  const block = btn.closest('.code-block');
+  const code = decodeB64(block.dataset.code);
+  navigator.clipboard.writeText(code).catch(() => {
+    const ta = document.createElement('textarea'); ta.value = code;
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); } catch(_) {}
+    ta.remove();
+  });
+  btn.classList.add('done');
+  const span = btn.querySelector('span');
+  const old = span.textContent;
+  span.textContent = 'Copié !';
+  setTimeout(() => { btn.classList.remove('done'); span.textContent = old; }, 1500);
+}
+function downloadCodeBlock(btn) {
+  const block = btn.closest('.code-block');
+  const code = decodeB64(block.dataset.code);
+  const lang = block.dataset.lang || 'txt';
+  const ext = CODE_EXT[lang] || 'txt';
+  const blob = new Blob([code], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'code_' + Date.now() + '.' + ext;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  btn.classList.add('done');
+  const span = btn.querySelector('span');
+  const old = span.textContent;
+  span.textContent = 'Téléchargé';
+  setTimeout(() => { btn.classList.remove('done'); span.textContent = old; }, 1500);
 }
 
 function appendMsg(role, content) {
@@ -2243,24 +2353,14 @@ async function sendMessage() {
   const text = input.value.trim();
   if (!text && !attachedImage) return;
 
-  // Vérif quota du tier actuel
-  const tier = getCurrentTier();
-  if (!window._currentUser && tier !== 'flash') {
-    setCurrentTier('flash'); // invité forcé sur Flash
-  }
-  if (!canUseTier(getCurrentTier())) {
-    if (!window._currentUser) {
-      alert(t('tier.guest_limit'));
-      openAuth();
-    } else {
-      alert(t('tier.limit_reached'));
-    }
+  // Mode libre : il faut juste avoir un pseudo
+  if (!hasPseudo()) {
+    openPseudoModal('');
     return;
   }
-  if (!window._currentUser) {
-    if (freeMessages >= FREE_LIMIT) { openAuth(); return; }
-    freeMessages++;
-    localStorage.setItem('byteFreeMsgs', String(freeMessages));
+  if (!canUseTier(getCurrentTier())) {
+    alert(t('tier.limit_reached'));
+    return;
   }
 
   if (!currentConvId) {
@@ -3076,13 +3176,12 @@ const STYLE_PROMPTS = {
 let selectedMusicStyle = null;
 
 function openMusicModal() {
-  // Gate 1 : doit être connecté
-  if (!window._currentUser) {
-    alert(t('music.must_signup'));
-    openAuth();
+  // Mode libre : pseudo requis
+  if (!hasPseudo()) {
+    openPseudoModal('');
     return;
   }
-  // Gate 2 : limite quotidienne
+  // Limite quotidienne
   const q = getMusicQuota();
   if (q.remaining <= 0) {
     alert(t('music.limit'));
@@ -3108,12 +3207,6 @@ async function generateMusicFromModal() {
     if (first) { first.style.borderColor = 'var(--danger)'; setTimeout(() => first.style.borderColor = '', 800); }
     return;
   }
-  if (!window._currentUser) {
-    if (freeMessages >= FREE_LIMIT) { closeMusicModal(); openAuth(); return; }
-    freeMessages++;
-    localStorage.setItem('byteFreeMsgs', String(freeMessages));
-  }
-
   const meta = STYLE_PROMPTS[selectedMusicStyle];
   const details = document.getElementById('music-details').value.trim();
   const prompt = meta.en + (details ? ', ' + details : '');
@@ -3201,6 +3294,10 @@ refreshWebSearchBtn();
 renderSidebar();
 if (conversations.length > 0) loadConversation(conversations[0].id);
 updateSendBtn();
+// Mode libre : si pas de pseudo, demander tout de suite (sans option Passer)
+if (!hasPseudo()) {
+  setTimeout(() => openPseudoModal(''), 600);
+}
 </script>
 </body>
 </html>
