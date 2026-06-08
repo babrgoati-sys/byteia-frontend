@@ -677,6 +677,40 @@
   }
   #music-details:focus { border-color: var(--accent); }
 
+  /* PSEUDO MODAL (apr&egrave;s signup) */
+  #pseudo-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+    display: none; align-items: center; justify-content: center;
+    z-index: 1100; backdrop-filter: blur(4px);
+  }
+  #pseudo-overlay.show { display: flex; }
+  #pseudo-modal {
+    background: var(--bg); border-radius: 18px;
+    padding: 32px 28px; width: 380px; max-width: calc(100vw - 32px);
+    box-shadow: 0 24px 60px rgba(0,0,0,0.2);
+    text-align: center;
+  }
+  #pseudo-modal h2 {
+    font-size: 22px; margin-bottom: 8px; color: var(--text);
+  }
+  #pseudo-modal p {
+    font-size: 14px; color: var(--text-mute); margin-bottom: 20px; line-height: 1.5;
+  }
+  #pseudo-modal input {
+    width: 100%; padding: 12px 16px;
+    border: 1.5px solid var(--border-strong); border-radius: 10px;
+    font-size: 15px; outline: none; margin-bottom: 16px;
+    font-family: inherit; text-align: center;
+    background: var(--bg); color: var(--text);
+    transition: border-color 0.2s;
+  }
+  #pseudo-modal input:focus { border-color: var(--accent); }
+  #pseudo-modal .auth-btn { width: 100%; }
+  #pseudo-modal .pseudo-skip {
+    margin-top: 10px; font-size: 12.5px; color: var(--text-mute);
+    cursor: pointer; background: none; border: none; width: 100%;
+  }
+
   /* SETTINGS MODAL */
   #settings-overlay {
     position: fixed; inset: 0; background: rgba(0,0,0,0.4);
@@ -1024,6 +1058,10 @@
     <div class="auth-form">
       <input type="email" id="auth-email" data-i18n-ph="auth.email" placeholder="Email" autocomplete="email">
       <input type="password" id="auth-password" data-i18n-ph="auth.password" placeholder="Mot de passe" autocomplete="current-password">
+      <div id="auth-code-row" style="display:none">
+        <input type="text" id="auth-code" placeholder="Code &agrave; 6 chiffres" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" style="letter-spacing:6px;text-align:center;font-size:18px">
+        <div style="font-size:12px;color:var(--text-mute);margin-top:6px;text-align:center">V&eacute;rifiez votre bo&icirc;te email. <a href="#" onclick="resendCode();return false" style="color:var(--accent)">Renvoyer</a></div>
+      </div>
       <div class="auth-error" id="auth-error"></div>
       <button class="auth-btn" id="auth-submit-btn" onclick="submitAuth()" data-i18n="auth.signin">Se connecter</button>
       <button class="google-btn" onclick="signInGoogle()">
@@ -1051,6 +1089,17 @@
   </div>
   <div id="voice-state-text">&Eacute;coute&hellip;</div>
   <div id="voice-transcript"></div>
+</div>
+
+<!-- PSEUDO MODAL (apr&egrave;s signup) -->
+<div id="pseudo-overlay">
+  <div id="pseudo-modal">
+    <h2 id="pseudo-title">Comment je vous appelle&nbsp;?</h2>
+    <p id="pseudo-subtitle">Donnez-moi un pseudo, j'utiliserai ce pr&eacute;nom pour vous parler.</p>
+    <input type="text" id="pseudo-modal-input" maxlength="30" autocomplete="given-name" placeholder="Votre pr&eacute;nom ou pseudo">
+    <button class="auth-btn" id="pseudo-save-btn" onclick="savePseudoFromModal()">Valider</button>
+    <button class="pseudo-skip" onclick="closePseudoModal()">Passer pour l'instant</button>
+  </div>
 </div>
 
 <!-- SETTINGS MODAL -->
@@ -1201,6 +1250,13 @@ onAuthStateChanged(auth, (user) => {
     planEl.textContent = (window.t ? window.t('sidebar.plan_connected') : 'Connecté');
     avEl.textContent = (user.displayName || user.email)[0].toUpperCase();
     closeAuth();
+    // Si pas encore de pseudo defini -> forcer modal pseudo
+    if (!localStorage.getItem('bytePseudo')) {
+      const guess = user.displayName || (user.email || '').split('@')[0] || '';
+      if (window.openPseudoModal) {
+        setTimeout(() => window.openPseudoModal(guess), 400);
+      }
+    }
   } else {
     nameEl.textContent = (window.t ? window.t('sidebar.signin') : 'Se connecter');
     planEl.textContent = (window.t ? window.t('sidebar.plan_free') : 'Plan gratuit');
@@ -1242,6 +1298,31 @@ function setPseudo(name) {
   if (name && name.trim()) localStorage.setItem('bytePseudo', name.trim());
   else localStorage.removeItem('bytePseudo');
 }
+
+// Modal pseudo : s'affiche apres signup si aucun pseudo defini
+function openPseudoModal(defaultValue) {
+  const input = document.getElementById('pseudo-modal-input');
+  if (input) {
+    input.value = defaultValue || '';
+    setTimeout(() => input.focus(), 80);
+    input.onkeydown = (e) => { if (e.key === 'Enter') savePseudoFromModal(); };
+  }
+  document.getElementById('pseudo-overlay').classList.add('show');
+}
+function closePseudoModal() {
+  document.getElementById('pseudo-overlay').classList.remove('show');
+}
+function savePseudoFromModal() {
+  const input = document.getElementById('pseudo-modal-input');
+  const val = input.value.trim();
+  if (val) setPseudo(val);
+  closePseudoModal();
+  applyI18n(); // re-render welcome + sidebar avec le nouveau pseudo
+  if (window._currentUser) {
+    document.getElementById('user-name-label').textContent = val || (window._currentUser.email || '').split('@')[0];
+  }
+}
+window.openPseudoModal = openPseudoModal;
 function getGreetingKey() {
   const h = new Date().getHours();
   if (h >= 7  && h < 12) return 'greeting.morning';   // 07h-12h : Bonjour
@@ -2447,26 +2528,130 @@ function switchTab(tab) {
   document.getElementById('forgot-link').style.display = tab === 'login' ? 'block' : 'none';
   document.getElementById('auth-error').textContent = '';
 }
+// Flux signup avec code : 'idle' -> 'code-sent' (apres envoi) -> 'verified' (apres validation)
+let signupStep = 'idle';
+let pendingSignup = null; // { email, password }
+
 async function submitAuth() {
   const email = document.getElementById('auth-email').value.trim();
   const pass = document.getElementById('auth-password').value;
+  const codeEl = document.getElementById('auth-code');
+  const code = codeEl ? codeEl.value.trim() : '';
   const errEl = document.getElementById('auth-error');
+  const btn = document.getElementById('auth-submit-btn');
   errEl.style.color = '';
   errEl.textContent = '';
-  if (!email || !pass) { errEl.textContent = 'Remplissez tous les champs.'; return; }
-  try {
-    if (authTab === 'login') await window._signInWithEmailAndPassword(window._auth, email, pass);
-    else await window._createUserWithEmailAndPassword(window._auth, email, pass);
-  } catch(e) {
-    const msgs = {
-      'auth/wrong-password': 'Mot de passe incorrect.',
-      'auth/user-not-found': 'Compte introuvable.',
-      'auth/email-already-in-use': 'Email déjà utilisé.',
-      'auth/weak-password': 'Mot de passe trop faible.',
-      'auth/invalid-email': 'Email invalide.'
-    };
-    errEl.textContent = msgs[e.code] || 'Erreur d\'authentification.';
+
+  if (authTab === 'login') {
+    // === LOGIN ===
+    if (!email || !pass) { errEl.textContent = 'Remplissez tous les champs.'; return; }
+    try {
+      await window._signInWithEmailAndPassword(window._auth, email, pass);
+    } catch(e) {
+      const msgs = {
+        'auth/wrong-password': 'Mot de passe incorrect.',
+        'auth/user-not-found': 'Compte introuvable.',
+        'auth/invalid-email': 'Email invalide.'
+      };
+      errEl.textContent = msgs[e.code] || 'Erreur de connexion.';
+    }
+    return;
   }
+
+  // === SIGNUP (3 etapes) ===
+  if (signupStep === 'idle') {
+    // Etape 1 : envoyer le code
+    if (!email || !pass) { errEl.textContent = 'Remplissez tous les champs.'; return; }
+    if (pass.length < 6) { errEl.textContent = 'Mot de passe : 6 caractères minimum.'; return; }
+    btn.disabled = true;
+    btn.textContent = 'Envoi du code…';
+    try {
+      const r = await fetch(BACKEND + '/api/auth/send-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, lang: getCurrentLang() })
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'Erreur envoi');
+      pendingSignup = { email, password: pass };
+      signupStep = 'code-sent';
+      document.getElementById('auth-code-row').style.display = 'block';
+      document.getElementById('auth-email').disabled = true;
+      document.getElementById('auth-password').disabled = true;
+      btn.textContent = 'Vérifier le code';
+      errEl.style.color = '#22c55e';
+      errEl.textContent = 'Code envoyé à ' + email;
+      setTimeout(() => { if (codeEl) codeEl.focus(); }, 50);
+    } catch (e) {
+      errEl.textContent = e.message;
+    } finally {
+      btn.disabled = false;
+    }
+    return;
+  }
+
+  if (signupStep === 'code-sent') {
+    // Etape 2 : verifier le code puis creer le compte Firebase
+    if (!code || code.length !== 6) { errEl.textContent = 'Entrez le code à 6 chiffres.'; return; }
+    btn.disabled = true;
+    btn.textContent = 'Vérification…';
+    try {
+      const vr = await fetch(BACKEND + '/api/auth/verify-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: pendingSignup.email, code })
+      });
+      const vd = await vr.json();
+      if (!vr.ok) throw new Error(vd.error || 'Code invalide');
+      // Code OK -> creation du compte Firebase
+      btn.textContent = 'Création du compte…';
+      await window._createUserWithEmailAndPassword(window._auth, pendingSignup.email, pendingSignup.password);
+      // onAuthStateChanged se charge de la suite (declenche le pseudo modal)
+      resetSignupForm();
+    } catch (e) {
+      const msgs = {
+        'auth/email-already-in-use': 'Email déjà utilisé.',
+        'auth/weak-password': 'Mot de passe trop faible.',
+        'auth/invalid-email': 'Email invalide.'
+      };
+      errEl.textContent = msgs[e.code] || e.message;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Vérifier le code';
+    }
+  }
+}
+
+async function resendCode() {
+  if (!pendingSignup) return;
+  const errEl = document.getElementById('auth-error');
+  errEl.style.color = '';
+  errEl.textContent = 'Envoi en cours…';
+  try {
+    const r = await fetch(BACKEND + '/api/auth/send-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: pendingSignup.email, lang: getCurrentLang() })
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Erreur');
+    errEl.style.color = '#22c55e';
+    errEl.textContent = 'Code renvoyé';
+  } catch (e) {
+    errEl.style.color = '';
+    errEl.textContent = e.message;
+  }
+}
+
+function resetSignupForm() {
+  signupStep = 'idle';
+  pendingSignup = null;
+  document.getElementById('auth-code-row').style.display = 'none';
+  document.getElementById('auth-email').disabled = false;
+  document.getElementById('auth-password').disabled = false;
+  const codeEl = document.getElementById('auth-code');
+  if (codeEl) codeEl.value = '';
+  document.getElementById('auth-error').textContent = '';
 }
 async function signInGoogle() {
   try { await window._signInWithPopup(window._auth, window._provider); }
